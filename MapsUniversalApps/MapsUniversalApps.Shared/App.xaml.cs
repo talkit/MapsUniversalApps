@@ -57,7 +57,7 @@ namespace MapsUniversalApps
 #if DEBUG
             if (System.Diagnostics.Debugger.IsAttached)
             {
-                this.DebugSettings.EnableRedrawRegions = true;
+                //this.DebugSettings.EnableRedrawRegions = true;
                 this.DebugSettings.EnableFrameRateCounter = true;
             }
 #endif

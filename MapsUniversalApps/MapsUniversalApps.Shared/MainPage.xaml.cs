@@ -39,12 +39,11 @@ namespace MapsUniversalApps
         {
             // Get user location
             Geolocator geolocator = new Geolocator();
-            Geoposition geoposition = await geolocator.GetGeopositionAsync();
-
+            Geoposition geoposition = await geolocator.GetGeopositionAsync();            
             BasicGeoposition position = new BasicGeoposition() { Latitude = geoposition.Coordinate.Point.Position.Latitude, Longitude = geoposition.Coordinate.Point.Position.Longitude };
             this.BasicPositions.Add(position);
 
-            // Set position in map
+            // Set position in map            
             Map.SetPosition(position, 15);
 
             // add/update the pushpin
@@ -56,13 +55,15 @@ namespace MapsUniversalApps
                 myPushpin = new PushpinViewModel(true);
                 myPushpin.Title = "Estou aqui!";
                 myPushpin.Position = position;
+                myPushpin.Accuracy = geoposition.Coordinate.Accuracy;
 
                 // Add pin
                 Map.AddPin(myPushpin);
             }
             else
-            {
+            {                
                 myPushpin.Position = position;
+                myPushpin.Accuracy = geoposition.Coordinate.Accuracy;
             }
         }
 
@@ -118,7 +119,7 @@ namespace MapsUniversalApps
                 latitude += latitudeDelta;
                 longitude += longitudeDelta;
 
-                pushpinViewModel.Position = new BasicGeoposition() { Latitude = latitude, Longitude = longitude };
+                pushpinViewModel.Position = new BasicGeoposition() { Latitude = latitude, Longitude = longitude };                
 
                 Map.AddPin(pushpinViewModel);
 

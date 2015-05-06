@@ -31,8 +31,9 @@ namespace MapsUniversalApps.ViewModels
         private string title;
         private PushpinEnum imageSourceKey = PushpinEnum.Pushpin1;
         private BasicGeoposition position;
+        private double accuracy = 0;
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler PropertyChanged;        
 
         #endregion
 
@@ -93,6 +94,20 @@ namespace MapsUniversalApps.ViewModels
             set
             {
                 this.position = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        public  double Accuracy
+        {
+            get
+            {
+                return this.accuracy;
+            }
+
+            set
+            {
+                this.accuracy = value;
                 RaisePropertyChanged();
             }
         }

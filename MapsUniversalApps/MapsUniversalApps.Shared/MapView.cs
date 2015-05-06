@@ -20,13 +20,13 @@ using Bing.Maps;
 using Windows.UI.Xaml.Shapes;
 using Windows.UI.Xaml.Media;
 using Windows.UI;
-using Windows.UI.Xaml;
 #elif WINDOWS_PHONE_APP
 using System;
 using Windows.UI.Xaml.Controls.Maps;
 using Windows.Foundation;
 using Windows.Storage.Streams;
 using Windows.UI.Xaml.Data;
+using Windows.UI.Xaml.Media.Imaging;
 #endif
 
 
@@ -199,7 +199,7 @@ namespace MapsUniversalApps
                 Bing.Maps.Location location = new Location(pushpinViewModel.Position.Latitude, pushpinViewModel.Position.Longitude);
                 locationCollection.Add(location);
             }
-            map.SetView(new LocationRect(locationCollection));
+            map.SetView(new LocationRect(locationCollection)); 
 
 #elif WINDOWS_PHONE_APP
             map.TrySetViewBoundsAsync(GeoboundingBox.TryCompute(basicPositions), null, MapAnimationKind.Default);
@@ -210,13 +210,15 @@ namespace MapsUniversalApps
         public void AddPin(PushpinViewModel pushpinViewModel)
         {
             pushpinViewModelList.Add(pushpinViewModel);
-
+                        
 #if WINDOWS_APP
             
             Pushpin pushpin = new Pushpin();
             pushpin.DataContext = pushpinViewModel;
             map.Children.Add(pushpin);
-            MapLayer.SetPosition(pushpin, new Location(pushpinViewModel.Position.Latitude, pushpinViewModel.Position.Longitude));
+            MapLayer.SetPosition(pushpin, new Location(pushpinViewModel.Position.Latitude, pushpinViewModel.Position.Longitude));            
+            
+            // MapPolygon is not supported by Windows 8.1 Bing Map SDK
 
 #elif WINDOWS_PHONE_APP
 
@@ -227,25 +229,85 @@ namespace MapsUniversalApps
             mapIcon.Title = pushpinViewModel.Title == null ? string.Empty : pushpinViewModel.Title;
             map.MapElements.Add(mapIcon);
 
-        //make a new source            
-        pushpinViewModel.PropertyChanged += (sender, args) =>
-        {
-            if (args.PropertyName.Equals("Title"))
+            MapPolygon precision = null;
+
+            if (pushpinViewModel.Accuracy > 0)
             {
-                mapIcon.Title = ((PushpinViewModel)sender).Title;
-            }
-            else if (args.PropertyName.Equals("PushpinImage"))
+                precision = GenerateMapAccuracyCircle(pushpinViewModel.Position, pushpinViewModel.Accuracy);
+                map.MapElements.Add(precision);                
+            }            
+
+            //make a new source            
+            pushpinViewModel.PropertyChanged += (sender, args) =>
             {
-                mapIcon.Image = pushpinViewModel.PushpinImage;            
-            }
-            else if (args.PropertyName.Equals("position"))
-            {
-                mapIcon.Location = new Geopoint(pushpinViewModel.Position);
-            }
-        };
+                if (args.PropertyName.Equals("Title"))
+                {
+                    mapIcon.Title = ((PushpinViewModel)sender).Title;
+                }
+                else if (args.PropertyName.Equals("PushpinImage"))
+                {
+                    mapIcon.Image = pushpinViewModel.PushpinImage;            
+                }
+                else if (args.PropertyName.Equals("Position"))
+                {
+                    mapIcon.Location = new Geopoint(pushpinViewModel.Position);
+                }
+                else if (args.PropertyName.Equals("Accuracy") && precision != null)
+                {
+                    GenerateMapAccuracyCircle(pushpinViewModel.Position, pushpinViewModel.Accuracy, precision);
+                }
+            };
+
+            
 
 #endif      
         }
+
+#if WINDOWS_PHONE_APP
+
+        /// <summary>
+        /// The MapPolygon is only supported on Windows Phone.
+        /// So, this method is only implemented for Windows Phone
+        /// </summary>
+        /// <param name="position">The position on map</param>
+        /// <param name="accuracy">The accuracy obtained from position on map</param>
+        /// <param name="precision">Specify the polygon if it already exist</param>
+        /// <returns>Updated MapPolygon</returns>
+        public MapPolygon GenerateMapAccuracyCircle(BasicGeoposition position, double accuracy, MapPolygon precision = null)
+        {
+            if (precision == null)
+            { 
+                precision = new MapPolygon();
+                precision.StrokeThickness = 1;
+                precision.FillColor = Windows.UI.Color.FromArgb(80, 255,0,0);
+            }
+
+            var earthRadius = 6371;
+            var lat = position.Latitude * Math.PI / 180.0; //radians
+            var lon = position.Longitude * Math.PI / 180.0; //radians
+            var d = accuracy / 1000 / earthRadius; // d = angular distance covered on earths surface
+ 
+            List<BasicGeoposition> precisionPath = new List<BasicGeoposition>();
+            for (int x = 0; x <= 360; x++)
+            {
+                var brng = x * Math.PI / 180.0; //radians
+                var latRadians = Math.Asin(Math.Sin(lat) * Math.Cos(d) + Math.Cos(lat) * Math.Sin(d) * Math.Cos(brng));
+                var lngRadians = lon + Math.Atan2(Math.Sin(brng) * Math.Sin(d) * Math.Cos(lat), Math.Cos(d) - Math.Sin(lat) * Math.Sin(latRadians));
+ 
+                var pt = new BasicGeoposition()
+                {
+                    Latitude = 180.0 * (latRadians / Math.PI),
+                    Longitude = 180.0 * (lngRadians / Math.PI)
+                };
+
+                precisionPath.Add(pt);
+            }
+
+            precision.Path = new Geopath(precisionPath);
+
+            return precision;
+        }
+#endif
 
         public List<PushpinViewModel> GetPushpinList()
         {

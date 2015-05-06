@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapsUniversalApps.WindowsPhone", "MapsUniversalApps\MapsUniversalApps.WindowsPhone\MapsUniversalApps.WindowsPhone.csproj", "{50BE0D40-6B9B-470C-9CAE-0753E515CE20}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MapsUniversalApps", "MapsUniversalApps", "{7CB08768-D0DB-4319-A238-0CAF73077B2E}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "MapsUniversalApps.Shared", "MapsUniversalApps\MapsUniversalApps.Shared\MapsUniversalApps.Shared.shproj", "{F4EAA4DF-185B-4C2F-BF1A-F1F42D35EAAB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapsUniversalApps.Windows", "MapsUniversalApps\MapsUniversalApps.Windows\MapsUniversalApps.Windows.csproj", "{7BC50C37-F9B9-4CD7-8CE9-E6EFCDF5D3F2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MapsUniversalApps.WindowsPhone", "MapsUniversalApps\MapsUniversalApps.WindowsPhone\MapsUniversalApps.WindowsPhone.csproj", "{50BE0D40-6B9B-470C-9CAE-0753E515CE20}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
