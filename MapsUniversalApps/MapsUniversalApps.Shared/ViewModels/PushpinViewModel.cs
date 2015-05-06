@@ -1,18 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Text;
+
 #if WINDOWS_APP
+
 using Windows.UI.Xaml.Media;
 using Windows.Devices.Geolocation;
 using Windows.UI.Xaml.Media.Imaging;
+
 #elif WINDOWS_PHONE_APP
+
 using Windows.Storage.Streams;
 using Windows.UI.Xaml.Media.Imaging;
 using Windows.Devices.Geolocation;
-#endif
 
+#endif
 
 namespace MapsUniversalApps.ViewModels
 {
@@ -33,9 +35,9 @@ namespace MapsUniversalApps.ViewModels
         private BasicGeoposition position;
         private double accuracy = 0;
 
-        public event PropertyChangedEventHandler PropertyChanged;        
+        public event PropertyChangedEventHandler PropertyChanged;
 
-        #endregion
+        #endregion Fields and enums
 
         #region Constructors
 
@@ -44,7 +46,7 @@ namespace MapsUniversalApps.ViewModels
             this.isMyLocation = isMyLocation;
         }
 
-        #endregion
+        #endregion Constructors
 
         #region properties
 
@@ -98,7 +100,7 @@ namespace MapsUniversalApps.ViewModels
             }
         }
 
-        public  double Accuracy
+        public double Accuracy
         {
             get
             {
@@ -113,10 +115,10 @@ namespace MapsUniversalApps.ViewModels
         }
 
 #if WINDOWS_APP
-            
+
         public ImageSource PushpinImage
         {
-            get            
+            get
             {
                 BitmapImage bitmapImage = (BitmapImage)App.Current.Resources[this.ImageSourceKey.ToString()];
                 return bitmapImage;
@@ -136,7 +138,7 @@ namespace MapsUniversalApps.ViewModels
 
 #endif
 
-        #endregion
+        #endregion properties
 
         #region methods
 
@@ -151,7 +153,7 @@ namespace MapsUniversalApps.ViewModels
             RaisePropertyChanged("PushpinImage");
         }
 
-        // Create the OnPropertyChanged method to raise the event 
+        // Create the OnPropertyChanged method to raise the event
         protected void RaisePropertyChanged([CallerMemberName] string propertyName = null)
         {
             if (PropertyChanged != null)
@@ -161,6 +163,6 @@ namespace MapsUniversalApps.ViewModels
             }
         }
 
-        #endregion
+        #endregion methods
     }
 }

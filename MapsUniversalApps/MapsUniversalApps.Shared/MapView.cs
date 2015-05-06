@@ -7,28 +7,22 @@
 
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using MapsUniversalApps.ViewModels;
 using Windows.UI.Xaml.Controls;
 using Windows.Devices.Geolocation;
-using Windows.UI.Xaml;
 
 #if WINDOWS_APP
+
 using Bing.Maps;
-using Windows.UI.Xaml.Shapes;
-using Windows.UI.Xaml.Media;
-using Windows.UI;
+
 #elif WINDOWS_PHONE_APP
+
 using System;
 using Windows.UI.Xaml.Controls.Maps;
 using Windows.Foundation;
-using Windows.Storage.Streams;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Media.Imaging;
-#endif
 
+#endif
 
 namespace MapsUniversalApps
 {
@@ -45,6 +39,7 @@ namespace MapsUniversalApps
     public class MapView : Grid, INotifyPropertyChanged
     {
         #region Private Fields
+
 #if WINDOWS_APP
         private Map map;
 #elif WINDOWS_PHONE_APP
@@ -52,7 +47,7 @@ namespace MapsUniversalApps
 #endif
         private List<PushpinViewModel> pushpinViewModelList;
 
-        #endregion
+        #endregion Private Fields
 
         #region Constructor
 
@@ -62,14 +57,14 @@ namespace MapsUniversalApps
             map = new Map();
 #elif WINDOWS_PHONE_APP
             map = new MapControl();
-#endif            
+#endif
 
             pushpinViewModelList = new List<PushpinViewModel>();
 
             this.Children.Add(map);
         }
 
-        #endregion
+        #endregion Constructor
 
         #region Public Properties
 
@@ -141,7 +136,7 @@ namespace MapsUniversalApps
             }
         }
 
-        #endregion
+        #endregion Public Properties
 
         #region Public Methods
 
@@ -165,9 +160,11 @@ namespace MapsUniversalApps
                 case MapTypeEnum.Aerial:
                     map.MapType = MapType.Aerial;
                     break;
+
                 case MapTypeEnum.Birdseye:
                     map.MapType = MapType.Birdseye;
                     break;
+
                 case MapTypeEnum.Road:
                 default:
                     map.MapType = MapType.Road;
@@ -179,9 +176,11 @@ namespace MapsUniversalApps
                 case MapTypeEnum.Aerial:
                     map.Style = MapStyle.Aerial;
                     break;
-                case MapTypeEnum.Birdseye:                
+
+                case MapTypeEnum.Birdseye:
                     map.Style = MapStyle.AerialWithRoads;
-                    break;                
+                    break;
+
                 case MapTypeEnum.Road:
                 default:
                     map.Style = MapStyle.Terrain;
@@ -193,31 +192,31 @@ namespace MapsUniversalApps
         public async void SetAutomaticallyZoom(List<BasicGeoposition> basicPositions)
         {
 #if WINDOWS_APP
-            LocationCollection locationCollection = new LocationCollection ();
+            LocationCollection locationCollection = new LocationCollection();
             foreach (PushpinViewModel pushpinViewModel in pushpinViewModelList)
             {
                 Bing.Maps.Location location = new Location(pushpinViewModel.Position.Latitude, pushpinViewModel.Position.Longitude);
                 locationCollection.Add(location);
             }
-            map.SetView(new LocationRect(locationCollection)); 
+            map.SetView(new LocationRect(locationCollection));
 
 #elif WINDOWS_PHONE_APP
             map.TrySetViewBoundsAsync(GeoboundingBox.TryCompute(basicPositions), null, MapAnimationKind.Default);
-            
+
 #endif
         }
 
         public void AddPin(PushpinViewModel pushpinViewModel)
         {
             pushpinViewModelList.Add(pushpinViewModel);
-                        
+
 #if WINDOWS_APP
-            
+
             Pushpin pushpin = new Pushpin();
             pushpin.DataContext = pushpinViewModel;
             map.Children.Add(pushpin);
-            MapLayer.SetPosition(pushpin, new Location(pushpinViewModel.Position.Latitude, pushpinViewModel.Position.Longitude));            
-            
+            MapLayer.SetPosition(pushpin, new Location(pushpinViewModel.Position.Latitude, pushpinViewModel.Position.Longitude));
+
             // MapPolygon is not supported by Windows 8.1 Bing Map SDK
 
 #elif WINDOWS_PHONE_APP
@@ -234,10 +233,10 @@ namespace MapsUniversalApps
             if (pushpinViewModel.Accuracy > 0)
             {
                 precision = GenerateMapAccuracyCircle(pushpinViewModel.Position, pushpinViewModel.Accuracy);
-                map.MapElements.Add(precision);                
-            }            
+                map.MapElements.Add(precision);
+            }
 
-            //make a new source            
+            //make a new source
             pushpinViewModel.PropertyChanged += (sender, args) =>
             {
                 if (args.PropertyName.Equals("Title"))
@@ -246,7 +245,7 @@ namespace MapsUniversalApps
                 }
                 else if (args.PropertyName.Equals("PushpinImage"))
                 {
-                    mapIcon.Image = pushpinViewModel.PushpinImage;            
+                    mapIcon.Image = pushpinViewModel.PushpinImage;
                 }
                 else if (args.PropertyName.Equals("Position"))
                 {
@@ -258,9 +257,7 @@ namespace MapsUniversalApps
                 }
             };
 
-            
-
-#endif      
+#endif
         }
 
 #if WINDOWS_PHONE_APP
@@ -276,24 +273,24 @@ namespace MapsUniversalApps
         public MapPolygon GenerateMapAccuracyCircle(BasicGeoposition position, double accuracy, MapPolygon precision = null)
         {
             if (precision == null)
-            { 
+            {
                 precision = new MapPolygon();
                 precision.StrokeThickness = 1;
-                precision.FillColor = Windows.UI.Color.FromArgb(80, 255,0,0);
+                precision.FillColor = Windows.UI.Color.FromArgb(80, 255, 0, 0);
             }
 
             var earthRadius = 6371;
             var lat = position.Latitude * Math.PI / 180.0; //radians
             var lon = position.Longitude * Math.PI / 180.0; //radians
             var d = accuracy / 1000 / earthRadius; // d = angular distance covered on earths surface
- 
+
             List<BasicGeoposition> precisionPath = new List<BasicGeoposition>();
             for (int x = 0; x <= 360; x++)
             {
                 var brng = x * Math.PI / 180.0; //radians
                 var latRadians = Math.Asin(Math.Sin(lat) * Math.Cos(d) + Math.Cos(lat) * Math.Sin(d) * Math.Cos(brng));
                 var lngRadians = lon + Math.Atan2(Math.Sin(brng) * Math.Sin(d) * Math.Cos(lat), Math.Cos(d) - Math.Sin(lat) * Math.Sin(latRadians));
- 
+
                 var pt = new BasicGeoposition()
                 {
                     Latitude = 180.0 * (latRadians / Math.PI),
@@ -307,6 +304,7 @@ namespace MapsUniversalApps
 
             return precision;
         }
+
 #endif
 
         public List<PushpinViewModel> GetPushpinList()
@@ -314,13 +312,13 @@ namespace MapsUniversalApps
             return this.pushpinViewModelList;
         }
 
-        #endregion
+        #endregion Public Methods
 
         #region INotifyPropertyChanged Members
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        // Create the OnPropertyChanged method to raise the event 
+        // Create the OnPropertyChanged method to raise the event
         protected void RaisePropertyChanged([CallerMemberName] string propertyName = null)
         {
             if (PropertyChanged != null)
@@ -330,8 +328,6 @@ namespace MapsUniversalApps
             }
         }
 
-        #endregion
-
-
+        #endregion INotifyPropertyChanged Members
     }
 }

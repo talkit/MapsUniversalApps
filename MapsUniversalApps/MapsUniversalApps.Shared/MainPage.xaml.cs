@@ -1,26 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using MapsUniversalApps.ViewModels;
 using Windows.Devices.Geolocation;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
 
 #if WINDOWS_PHONE_APP
+
 using Windows.Services.Maps;
+
 #endif
 
 using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Media.Imaging;
-using Windows.UI.Xaml.Navigation;
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=234238
 
@@ -39,17 +31,17 @@ namespace MapsUniversalApps
         {
             this.InitializeComponent();
             BasicPositions = new List<BasicGeoposition>();
-        }        
+        }
 
         private async void MyLocationBtn_Clicked(object sender, RoutedEventArgs e)
         {
             // Get user location
             Geolocator geolocator = new Geolocator();
-            Geoposition geoposition = await geolocator.GetGeopositionAsync();            
+            Geoposition geoposition = await geolocator.GetGeopositionAsync();
             BasicGeoposition position = new BasicGeoposition() { Latitude = geoposition.Coordinate.Point.Position.Latitude, Longitude = geoposition.Coordinate.Point.Position.Longitude };
             this.BasicPositions.Add(position);
 
-            // Set position in map            
+            // Set position in map
             Map.SetPosition(position, 15);
 
             // add/update the pushpin
@@ -67,7 +59,7 @@ namespace MapsUniversalApps
                 Map.AddPin(myPushpin);
             }
             else
-            {                
+            {
                 myPushpin.Position = position;
                 myPushpin.Accuracy = geoposition.Coordinate.Accuracy;
             }
@@ -75,7 +67,7 @@ namespace MapsUniversalApps
 
         private async void ReverseGeocodingBtn_Clicked(object sender, RoutedEventArgs e)
         {
-            #if WINDOWS_PHONE_APP
+#if WINDOWS_PHONE_APP
             // Get user location
             Geolocator geolocator = new Geolocator();
             Geoposition geoposition = await geolocator.GetGeopositionAsync();
@@ -140,7 +132,7 @@ namespace MapsUniversalApps
             Geolocator geolocator = new Geolocator();
             Geoposition geoposition = await geolocator.GetGeopositionAsync();
             BasicGeoposition position = new BasicGeoposition() { Latitude = geoposition.Coordinate.Point.Position.Latitude, Longitude = geoposition.Coordinate.Point.Position.Longitude };
-            
+
             double latitude = position.Latitude;
             double longitude = position.Longitude;
 
@@ -148,7 +140,7 @@ namespace MapsUniversalApps
 
             for (int i = 0; i < 20; i++)
             {
-                PushpinViewModel pushpinViewModel = new PushpinViewModel();                
+                PushpinViewModel pushpinViewModel = new PushpinViewModel();
 
                 int signalRandom = random.Next(-1, 1);
                 signalRandom = signalRandom == 0 ? 1 : signalRandom;
@@ -161,14 +153,14 @@ namespace MapsUniversalApps
                 latitude += latitudeDelta;
                 longitude += longitudeDelta;
 
-                pushpinViewModel.Position = new BasicGeoposition() { Latitude = latitude, Longitude = longitude };                
+                pushpinViewModel.Position = new BasicGeoposition() { Latitude = latitude, Longitude = longitude };
 
                 Map.AddPin(pushpinViewModel);
 
                 BasicPositions.Add(new BasicGeoposition() { Latitude = latitude, Longitude = longitude });
             }
-        }     
-   
+        }
+
         private void ChangeMyPushpin_Clicked(object sender, RoutedEventArgs e)
         {
             var list = Map.GetPushpinList();

@@ -8,8 +8,8 @@
         <x:String x:Key="BingMapsKey">YOUR_BING_MAPS_KEY</x:String>
         <x:String x:Key="MapServiceToken">YOUR_WP_MAP_TOKEN</x:String>
 
-        <BitmapImage x:Key="Pushpin1" UriSource="ms-appx:///Assets/pushpin1.png"/>
-        <BitmapImage x:Key="Pushpin2" UriSource="ms-appx:///Assets/pushpin2.png"/>
-        <BitmapImage x:Key="Pushpin3" UriSource="ms-appx:///Assets/pushpin3.png"/>        
-    </Application.Resources>    
+        <BitmapImage x:Key="Pushpin1" UriSource="ms-appx:///Assets/pushpin1.png" />
+        <BitmapImage x:Key="Pushpin2" UriSource="ms-appx:///Assets/pushpin2.png" />
+        <BitmapImage x:Key="Pushpin3" UriSource="ms-appx:///Assets/pushpin3.png" />
+    </Application.Resources>
 </Application>

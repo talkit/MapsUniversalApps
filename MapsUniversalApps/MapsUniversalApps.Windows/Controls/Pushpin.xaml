@@ -7,12 +7,10 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     d:DesignHeight="48"
-    d:DesignWidth="48"
-    >
-    
+    d:DesignWidth="48">
+
     <StackPanel>
-        <Image Name="pushpinImage" Source="{Binding PushpinImage}" Stretch="Uniform" MaxWidth="48" MaxHeight="48"/>
-        <TextBlock Text="{Binding Title}" Foreground="#FF030303"/>
+        <Image Name="pushpinImage" Source="{Binding PushpinImage}" Stretch="Uniform" MaxWidth="48" MaxHeight="48" />
+        <TextBlock Text="{Binding Title}" Foreground="#FF030303" />
     </StackPanel>
-    
 </UserControl>

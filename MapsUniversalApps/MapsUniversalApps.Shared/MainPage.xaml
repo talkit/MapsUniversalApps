@@ -8,7 +8,7 @@
     mc:Ignorable="d">
 
     <Page.BottomAppBar>
-        <CommandBar>            
+        <CommandBar>
             <CommandBar.SecondaryCommands>
                 <AppBarButton Label="my location" Click="MyLocationBtn_Clicked">
                     <AppBarButton.Icon>
@@ -62,12 +62,12 @@
                     <AppBarToggleButton.Icon>
                         <SymbolIcon Symbol="Street"></SymbolIcon>
                     </AppBarToggleButton.Icon>
-                </AppBarToggleButton>              
+                </AppBarToggleButton>
             </CommandBar.SecondaryCommands>
         </CommandBar>
     </Page.BottomAppBar>
 
-    <Grid>        
-        <local:MapView x:Name="Map" Credentials="{StaticResource BingMapsKey}" MapServiceToken="{StaticResource MapServiceToken}"/>
+    <Grid>
+        <local:MapView x:Name="Map" Credentials="{StaticResource BingMapsKey}" MapServiceToken="{StaticResource MapServiceToken}" />
     </Grid>
 </Page>
