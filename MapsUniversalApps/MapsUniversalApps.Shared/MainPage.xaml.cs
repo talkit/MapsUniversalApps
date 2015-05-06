@@ -7,7 +7,11 @@ using MapsUniversalApps.ViewModels;
 using Windows.Devices.Geolocation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+
+#if WINDOWS_PHONE_APP
 using Windows.Services.Maps;
+#endif
+
 using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -71,6 +75,7 @@ namespace MapsUniversalApps
 
         private async void ReverseGeocodingBtn_Clicked(object sender, RoutedEventArgs e)
         {
+            #if WINDOWS_PHONE_APP
             // Get user location
             Geolocator geolocator = new Geolocator();
             Geoposition geoposition = await geolocator.GetGeopositionAsync();
@@ -98,6 +103,10 @@ namespace MapsUniversalApps
                     await message.ShowAsync();
                 }
             }
+#else
+            MessageDialog message = new MessageDialog("Not supported!");
+            await message.ShowAsync();
+#endif
         }
 
         private void RoadBtn_Clicked(object sender, RoutedEventArgs e)
