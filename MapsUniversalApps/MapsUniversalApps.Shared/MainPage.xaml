@@ -10,9 +10,15 @@
     <Page.BottomAppBar>
         <CommandBar>            
             <CommandBar.SecondaryCommands>
-                <AppBarButton Label="my Location" Click="MyLocationBtn_Clicked">
+                <AppBarButton Label="my location" Click="MyLocationBtn_Clicked">
                     <AppBarButton.Icon>
                         <SymbolIcon Symbol="Home"></SymbolIcon>
+                    </AppBarButton.Icon>
+                </AppBarButton>
+
+                <AppBarButton Label="reverse geocoding" Click="ReverseGeocodingBtn_Clicked">
+                    <AppBarButton.Icon>
+                        <SymbolIcon Symbol="Street"></SymbolIcon>
                     </AppBarButton.Icon>
                 </AppBarButton>
 
@@ -28,31 +34,31 @@
                     </AppBarButton.Icon>
                 </AppBarButton>
 
-                <AppBarButton Label="Set zoom" Click="SetZoomButton_Checked">
+                <AppBarButton Label="set zoom" Click="SetZoomButton_Checked">
                     <AppBarButton.Icon>
                         <SymbolIcon Symbol="Zoom"></SymbolIcon>
                     </AppBarButton.Icon>
                 </AppBarButton>
 
-                <AppBarButton Label="Road" Click="RoadBtn_Clicked">
+                <AppBarButton Label="road" Click="RoadBtn_Clicked">
                     <AppBarButton.Icon>
                         <SymbolIcon Symbol="Target"></SymbolIcon>
                     </AppBarButton.Icon>
                 </AppBarButton>
 
-                <AppBarButton Label="Birdseye" Click="BirdseyeBtn_Clicked">
+                <AppBarButton Label="birdseye" Click="BirdseyeBtn_Clicked">
                     <AppBarButton.Icon>
                         <SymbolIcon Symbol="Globe"></SymbolIcon>
                     </AppBarButton.Icon>
                 </AppBarButton>
 
-                <AppBarButton Label="Aerial" Click="AerialBtn_Clicked">
+                <AppBarButton Label="aerial" Click="AerialBtn_Clicked">
                     <AppBarButton.Icon>
                         <SymbolIcon Symbol="Map"></SymbolIcon>
                     </AppBarButton.Icon>
                 </AppBarButton>
 
-                <AppBarToggleButton Label="Toggle Traffic" Click="ToggleTrafficBtn_Clicked">
+                <AppBarToggleButton Label="toggle traffic" Click="ToggleTrafficBtn_Clicked">
                     <AppBarToggleButton.Icon>
                         <SymbolIcon Symbol="Street"></SymbolIcon>
                     </AppBarToggleButton.Icon>

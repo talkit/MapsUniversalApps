@@ -7,6 +7,8 @@ using MapsUniversalApps.ViewModels;
 using Windows.Devices.Geolocation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Services.Maps;
+using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -53,7 +55,7 @@ namespace MapsUniversalApps
             if (myPushpin == null)
             {
                 myPushpin = new PushpinViewModel(true);
-                myPushpin.Title = "Estou aqui!";
+                myPushpin.Title = "I am here!";
                 myPushpin.Position = position;
                 myPushpin.Accuracy = geoposition.Coordinate.Accuracy;
 
@@ -64,6 +66,37 @@ namespace MapsUniversalApps
             {                
                 myPushpin.Position = position;
                 myPushpin.Accuracy = geoposition.Coordinate.Accuracy;
+            }
+        }
+
+        private async void ReverseGeocodingBtn_Clicked(object sender, RoutedEventArgs e)
+        {
+            // Get user location
+            Geolocator geolocator = new Geolocator();
+            Geoposition geoposition = await geolocator.GetGeopositionAsync();
+
+            // Find the address of user location
+            MapLocationFinderResult result = await MapLocationFinder.FindLocationsAtAsync(geoposition.Coordinate.Point);
+
+            if (result.Status == MapLocationFinderStatus.Success)
+            {
+                if (result.Locations.Count > 0)
+                {
+                    MapLocation location = result.Locations[0];
+
+                    string street = location.Address.Street;
+                    string streetNumber = location.Address.StreetNumber;
+                    string neighborhood = location.Address.District;
+                    string city = location.Address.Town;
+                    string region = location.Address.Region;
+                    string country = location.Address.Country;
+                    string zipcode = location.Address.PostCode;
+
+                    string address = string.Format("{0} {1}\n{2}\n{3}/{4} - {5}\n{6}", street, streetNumber, neighborhood, city, region, country, zipcode);
+
+                    MessageDialog message = new MessageDialog(address);
+                    await message.ShowAsync();
+                }
             }
         }
 
