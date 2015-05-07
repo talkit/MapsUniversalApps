@@ -6,11 +6,11 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
-    d:DesignHeight="48"
-    d:DesignWidth="48">
+    Width="48"
+    Height="48">
 
     <StackPanel>
-        <Image Name="pushpinImage" Source="{Binding PushpinImage}" Stretch="Uniform" MaxWidth="48" MaxHeight="48" />
+        <Image Name="pushpinImage" Stretch="Uniform" Source="{Binding PushpinImage}" MaxHeight="48" MaxWidth="48" RenderTransformOrigin="1,1"/>
         <TextBlock Text="{Binding Title}" Foreground="#FF030303" />
     </StackPanel>
 </UserControl>

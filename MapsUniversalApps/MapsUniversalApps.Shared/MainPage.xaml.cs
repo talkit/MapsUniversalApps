@@ -42,27 +42,28 @@ namespace MapsUniversalApps
             this.BasicPositions.Add(position);
 
             // Set position in map
-            Map.SetPosition(position, 15);
+            Map.SetPosition(position, 15, () =>
+                {
+                    // add/update the pushpin
+                    var list = Map.GetPushpinList();
 
-            // add/update the pushpin
-            var list = Map.GetPushpinList();
+                    var myPushpin = list.Where(pin => pin.IsMyLocation).FirstOrDefault();
+                    if (myPushpin == null)
+                    {
+                        myPushpin = new PushpinViewModel(true);
+                        myPushpin.Title = "I am here!";
+                        myPushpin.Position = position;
+                        myPushpin.Accuracy = geoposition.Coordinate.Accuracy;
 
-            var myPushpin = list.Where(pin => pin.IsMyLocation).FirstOrDefault();
-            if (myPushpin == null)
-            {
-                myPushpin = new PushpinViewModel(true);
-                myPushpin.Title = "I am here!";
-                myPushpin.Position = position;
-                myPushpin.Accuracy = geoposition.Coordinate.Accuracy;
-
-                // Add pin
-                Map.AddPin(myPushpin);
-            }
-            else
-            {
-                myPushpin.Position = position;
-                myPushpin.Accuracy = geoposition.Coordinate.Accuracy;
-            }
+                        // Add pin
+                        Map.AddPin(myPushpin);
+                    }
+                    else
+                    {
+                        myPushpin.Position = position;
+                        myPushpin.Accuracy = geoposition.Coordinate.Accuracy;
+                    }
+                });
         }
 
         private async void ReverseGeocodingBtn_Clicked(object sender, RoutedEventArgs e)

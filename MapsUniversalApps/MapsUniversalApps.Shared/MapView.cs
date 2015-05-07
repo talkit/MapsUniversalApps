@@ -5,8 +5,10 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using MapsUniversalApps.ViewModels;
 using Windows.UI.Xaml.Controls;
@@ -15,12 +17,14 @@ using Windows.Devices.Geolocation;
 #if WINDOWS_APP
 
 using Bing.Maps;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Media;
 
 #elif WINDOWS_PHONE_APP
 
-using System;
 using Windows.UI.Xaml.Controls.Maps;
 using Windows.Foundation;
+using Windows.UI;
 
 #endif
 
@@ -40,6 +44,11 @@ namespace MapsUniversalApps
     {
         #region Private Fields
 
+        private const double earthRadius = 6371000D;
+        private const double Circumference = 2D * Math.PI * earthRadius;
+        private double currentZoom;
+        private TimeSpan myLocationZoomAnimation = TimeSpan.FromSeconds(1);
+
 #if WINDOWS_APP
         private Map map;
 #elif WINDOWS_PHONE_APP
@@ -54,12 +63,24 @@ namespace MapsUniversalApps
         public MapView()
         {
 #if WINDOWS_APP
-            map = new Map();
+            map = new Map();            
+
+            map.ViewChanged += (s, e) =>
+            {                
+                //Update pushpins scale based on zomom level, if changed
+                this.UpdatePushpins();
+                this.currentZoom = map.ZoomLevel;
+            };
 #elif WINDOWS_PHONE_APP
             map = new MapControl();
-#endif
+            map.ZoomLevelChanged += (s, e) =>
+            {
+                this.currentZoom = map.ZoomLevel;
+            };
 
-            pushpinViewModelList = new List<PushpinViewModel>();
+#endif            
+            this.currentZoom = map.ZoomLevel; 
+            pushpinViewModelList = new List<PushpinViewModel>();            
 
             this.Children.Add(map);
         }
@@ -140,15 +161,23 @@ namespace MapsUniversalApps
 
         #region Public Methods
 
-        public void SetPosition(BasicGeoposition center, double zoom)
+        public void SetPosition(BasicGeoposition center, double zoom, Action zoomCompleted)
         {
 #if WINDOWS_APP
-            map.SetView(new Location(center.Latitude, center.Longitude), zoom);
+            map.SetView(new Location(center.Latitude, center.Longitude), zoom, myLocationZoomAnimation);
             RaisePropertyChanged("Center");
             RaisePropertyChanged("Zoom");
+
+            DispatcherTimer timer = new DispatcherTimer();
+            timer.Interval = myLocationZoomAnimation;
+            timer.Tick += (sender, args) => {
+                zoomCompleted();
+            };
+            timer.Start();
 #elif WINDOWS_PHONE_APP
             map.Center = new Geopoint(center);
             map.ZoomLevel = zoom;
+            zoomCompleted();
 #endif
         }
 
@@ -211,13 +240,21 @@ namespace MapsUniversalApps
             pushpinViewModelList.Add(pushpinViewModel);
 
 #if WINDOWS_APP
-
+                        
             Pushpin pushpin = new Pushpin();
             pushpin.DataContext = pushpinViewModel;
-            map.Children.Add(pushpin);
+            pushpin.Margin = new Windows.UI.Xaml.Thickness((-1) * pushpin.Width / 2, (-1) * pushpin.Height, 0, 0);
+            map.Children.Add(pushpin);            
             MapLayer.SetPosition(pushpin, new Location(pushpinViewModel.Position.Latitude, pushpinViewModel.Position.Longitude));
-
-            // MapPolygon is not supported by Windows 8.1 Bing Map SDK
+                        
+            if (pushpinViewModel.IsMyLocation && pushpinViewModel.Accuracy > 0)
+            {
+                AccuracyCircle precision = (AccuracyCircle)map.Children.Where(c => c is AccuracyCircle).FirstOrDefault();
+                precision = GenerateMapAccuracyCircle(pushpinViewModel.Position, pushpinViewModel.Accuracy, precision);
+                precision.DataContext = pushpinViewModel;
+                map.Children.Add(precision);
+                MapLayer.SetPosition(precision, new Location(pushpinViewModel.Position.Latitude, pushpinViewModel.Position.Longitude));
+            }
 
 #elif WINDOWS_PHONE_APP
 
@@ -230,7 +267,7 @@ namespace MapsUniversalApps
 
             MapPolygon precision = null;
 
-            if (pushpinViewModel.Accuracy > 0)
+            if (pushpinViewModel.IsMyLocation && pushpinViewModel.Accuracy > 0)
             {
                 precision = GenerateMapAccuracyCircle(pushpinViewModel.Position, pushpinViewModel.Accuracy);
                 map.MapElements.Add(precision);
@@ -260,49 +297,108 @@ namespace MapsUniversalApps
 #endif
         }
 
-#if WINDOWS_PHONE_APP
+#if WINDOWS_APP
 
-        /// <summary>
-        /// The MapPolygon is only supported on Windows Phone.
-        /// So, this method is only implemented for Windows Phone
-        /// </summary>
-        /// <param name="position">The position on map</param>
-        /// <param name="accuracy">The accuracy obtained from position on map</param>
-        /// <param name="precision">Specify the polygon if it already exist</param>
-        /// <returns>Updated MapPolygon</returns>
+        public void UpdatePushpins()
+        {
+            foreach (UIElement element in map.Children)
+            {
+                if (element is Pushpin)
+                {
+                    Pushpin pushpin = element as Pushpin; 
+                    ScaleTransform scaleTrans = element.RenderTransform as ScaleTransform;
+                    if (pushpin.RenderTransform == null || !(pushpin.RenderTransform is ScaleTransform))
+                    {
+                        scaleTrans = new ScaleTransform();
+                        pushpin.RenderTransform = scaleTrans;
+                    }
+                    
+                    double delta = Math.Floor(Math.Abs(currentZoom - map.ZoomLevel));
+                    
+                    scaleTrans.ScaleX *= delta == 0 ? 1 : delta*0.1;
+                    scaleTrans.ScaleY = scaleTrans.ScaleX;
+                    double marginLeft = (-1) * (pushpin.Width / 2) * scaleTrans.ScaleX; 
+                    double marginTop = (-1) * pushpin.Height * scaleTrans.ScaleX;                    
+                    pushpin.Margin = new Windows.UI.Xaml.Thickness(marginLeft, marginTop, 0, 0);
+                }
+                else if (element is AccuracyCircle)
+                {
+                    AccuracyCircle precision = element as AccuracyCircle;
+                    PushpinViewModel pushpinViewModel = (PushpinViewModel)precision.DataContext;
+                    GenerateMapAccuracyCircle(pushpinViewModel.Position, pushpinViewModel.Accuracy, precision);
+                }
+            }
+        }
+
+        public AccuracyCircle GenerateMapAccuracyCircle(BasicGeoposition position, double accuracy, AccuracyCircle accuracyCircle = null)
+        {
+            //Calculate the ground resolution in meters/pixel
+            //Math based on http://msdn.microsoft.com/en-us/library/bb259689.aspx
+            double groundResolution = Math.Cos(position.Latitude * Math.PI / 180) *
+                2 * Math.PI * earthRadius / (256 * Math.Pow(2, this.map.ZoomLevel));
+
+            //Calculate the radius of the accuracy circle in pixels
+            double pixelRadius = accuracy / groundResolution;
+
+            //Update the accuracy circle dimensions
+            if (accuracyCircle == null)
+            {
+                accuracyCircle = new AccuracyCircle();
+            }
+            
+            accuracyCircle.Width = pixelRadius;
+            accuracyCircle.Height = pixelRadius;
+
+            //Use the margin property to center the accuracy circle
+            accuracyCircle.Margin = new Windows.UI.Xaml.Thickness(-pixelRadius / 2, -pixelRadius / 2, 0, 0);
+
+            return accuracyCircle;
+        }
+
+#elif WINDOWS_PHONE_APP
+
         public MapPolygon GenerateMapAccuracyCircle(BasicGeoposition position, double accuracy, MapPolygon precision = null)
         {
-            if (precision == null)
+            Color FillColor = Colors.Purple;
+            Color StrokeColor = Colors.Red;
+            FillColor.A = 80;
+            StrokeColor.A = 80;
+            precision = new MapPolygon
             {
-                precision = new MapPolygon();
-                precision.StrokeThickness = 1;
-                precision.FillColor = Windows.UI.Color.FromArgb(80, 255, 0, 0);
-            }
-
-            var earthRadius = 6371;
-            var lat = position.Latitude * Math.PI / 180.0; //radians
-            var lon = position.Longitude * Math.PI / 180.0; //radians
-            var d = accuracy / 1000 / earthRadius; // d = angular distance covered on earths surface
-
-            List<BasicGeoposition> precisionPath = new List<BasicGeoposition>();
-            for (int x = 0; x <= 360; x++)
-            {
-                var brng = x * Math.PI / 180.0; //radians
-                var latRadians = Math.Asin(Math.Sin(lat) * Math.Cos(d) + Math.Cos(lat) * Math.Sin(d) * Math.Cos(brng));
-                var lngRadians = lon + Math.Atan2(Math.Sin(brng) * Math.Sin(d) * Math.Cos(lat), Math.Cos(d) - Math.Sin(lat) * Math.Sin(latRadians));
-
-                var pt = new BasicGeoposition()
-                {
-                    Latitude = 180.0 * (latRadians / Math.PI),
-                    Longitude = 180.0 * (lngRadians / Math.PI)
-                };
-
-                precisionPath.Add(pt);
-            }
-
-            precision.Path = new Geopath(precisionPath);
+                StrokeThickness = 2,
+                FillColor = FillColor,
+                StrokeColor = StrokeColor,
+                Path = new Geopath(CalculateCircle(position, accuracy))
+            };
 
             return precision;
+        }
+
+        // Constants and helper functions:
+
+        
+        public static List<BasicGeoposition> CalculateCircle(BasicGeoposition Position, double Radius)
+        {
+            List<BasicGeoposition> GeoPositions = new List<BasicGeoposition>();
+            for (int i = 0; i <= 360; i++)
+            {
+                double Bearing = ToRad(i);
+                double CircumferenceLatitudeCorrected = 2D * Math.PI * Math.Cos(ToRad(Position.Latitude)) * earthRadius;
+                double lat1 = Circumference / 360D * Position.Latitude;
+                double lon1 = CircumferenceLatitudeCorrected / 360D * Position.Longitude;
+                double lat2 = lat1 + Math.Sin(Bearing) * Radius;
+                double lon2 = lon1 + Math.Cos(Bearing) * Radius;
+                BasicGeoposition NewBasicPosition = new BasicGeoposition();
+                NewBasicPosition.Latitude = lat2 / (Circumference / 360D);
+                NewBasicPosition.Longitude = lon2 / (CircumferenceLatitudeCorrected / 360D);
+                GeoPositions.Add(NewBasicPosition);
+            }
+            return GeoPositions;
+        }
+
+        private static double ToRad(double degrees)
+        {
+            return degrees * (Math.PI / 180D);
         }
 
 #endif
